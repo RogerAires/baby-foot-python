@@ -7,7 +7,7 @@ if ENV == 'dev':
         'host': "localhost",
         'database': "babyfoot",
         'user': "postgres",
-        'password': "**"**
+        'password': "****"
     }
 else: 
 
