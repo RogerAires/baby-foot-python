@@ -574,12 +574,12 @@ def get_players_detailed_list():
 
 def get_latest_player_ratings(month=None, year=None):
     now = datetime.now()
-    default_month = now.month
     default_year = now.year
     selected_year = int(year) if year else default_year
-    selected_month = int(month) if month else default_month
-    start_date = f'{selected_year}-{selected_month:02d}-01 00:00:00'
-    end_date = f'{selected_year}-{selected_month:02d}-{get_last_day_of_month(selected_month, selected_year):02d} 23:59:59'
+    selected_start_month = int(month) if month else 1
+    selected_end_month = int(month) if month else 12
+    start_date = f'{selected_year}-{selected_start_month:02d}-01 00:00:00'
+    end_date = f'{selected_year}-{selected_end_month:02d}-{get_last_day_of_month(selected_end_month, selected_year):02d} 23:59:59'
 
     query = '''
         WITH max_player_rating_timestamp AS (

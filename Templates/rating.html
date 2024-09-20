@@ -39,6 +39,7 @@
         </select>
         <label for="month" class="month-label">Month</label>
         <select name="month" id="month">
+            <option value="" {% if month == "" %}selected{% endif %}>All</option>
             <option value="01" {% if month == "01" %}selected{% endif %}>January</option>
             <option value="02" {% if month == "02" %}selected{% endif %}>February</option>
             <option value="03" {% if month == "03" %}selected{% endif %}>March</option>
