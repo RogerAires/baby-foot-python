@@ -574,12 +574,12 @@ def get_players_detailed_list():
 
 def get_latest_player_ratings(month=None, year=None):
     now = datetime.now()
-    default_year = now.year
-    selected_year = int(year) if year else default_year
+    selected_start_year = int(year) if year else 1900
+    selected_end_year = int(year) if year else 3000
     selected_start_month = int(month) if month else 1
     selected_end_month = int(month) if month else 12
-    start_date = f'{selected_year}-{selected_start_month:02d}-01 00:00:00'
-    end_date = f'{selected_year}-{selected_end_month:02d}-{get_last_day_of_month(selected_end_month, selected_year):02d} 23:59:59'
+    start_date = f'{selected_start_year}-{selected_start_month:02d}-01 00:00:00'
+    end_date = f'{selected_end_year}-{selected_end_month:02d}-{get_last_day_of_month(selected_end_month, selected_end_year):02d} 23:59:59'
 
     query = '''
         WITH max_player_rating_timestamp AS (
@@ -602,11 +602,24 @@ def get_latest_player_ratings(month=None, year=None):
             SELECT match_id
             FROM Match
             WHERE match_timestamp BETWEEN %s AND %s
-        )
+        ),
+		victoireJoueur AS 
+		(
+			SELECT player_id, COUNT(*) AS nb_victoire
+			from Player p
+			INNER JOIN Team t ON
+				t.team_player_1_id = p.player_id 
+				or t.team_player_2_id = p.player_id 
+			INNER JOIN MATCH m ON
+				t.team_id = m.winning_team_id
+			WHERE match_timestamp BETWEEN %s AND %s
+			GROUP BY player_id
+		)
         SELECT 
             CONCAT(p.first_name, '.', SUBSTRING(p.last_name FROM 1 FOR 1)) as player_name, 
             pr.rating, 
             COUNT(DISTINCT fpm.match_id) as num_matches,
+            COALESCE(ROUND(CAST(NB_VICTOIRE * 100 AS numeric) / COUNT(DISTINCT fpm.match_id),2), 0) AS winnrate,
             pr.player_rating_timestamp
         FROM Player p
         JOIN max_player_rating_timestamp mprt ON p.player_id = mprt.player_id
@@ -615,13 +628,14 @@ def get_latest_player_ratings(month=None, year=None):
             AND pr.player_rating_timestamp = mprt.max_timestamp
         JOIN filtered_player_match fpm ON p.player_id = fpm.player_id
         JOIN filtered_matches fm ON fpm.match_id = fm.match_id
-        GROUP BY p.player_id, pr.rating, pr.player_rating_timestamp
+        LEFT JOIN victoireJoueur ON fpm.player_id = victoireJoueur.player_id
+        GROUP BY p.player_id, pr.rating, pr.player_rating_timestamp, nb_victoire
         ORDER BY pr.rating DESC;
     '''
 
     with psycopg2.connect(**DATABASE_CONFIG) as conn:
         cur = conn.cursor()
-        cur.execute(query, (start_date, end_date, start_date, end_date))
+        cur.execute(query, (start_date, end_date, start_date, end_date, start_date, end_date))
         player_ratings = cur.fetchall()
 
 

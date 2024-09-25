@@ -33,6 +33,7 @@
     <form method="GET" class="form-month">
         <label for="year" class="month-label">Year</label>
         <select name="year" id="year">
+            <option value="" {% if "" == year %}selected{% endif %}>All</option>
             {% for y in range(2021, now.year+1) %}
                 <option value="{{ y }}" {% if y|string() == year %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
@@ -62,6 +63,7 @@
             <th>Rank</th>
             <th>Name</th>
             <th>Rating</th>
+            <th>Victory Rate</th>
             <th>Games</th>
             <th>Last Game</th>
         </tr>
@@ -84,8 +86,9 @@
                 </td>
                 <td>{{ player[0] }}</td>
                 <td>{{ player[1] }}</td>
+                <td style="text-align: center;">{{ player[3] }}%</td>
                 <td style="text-align: center;">{{ player[2] }}</td>
-                <td>{{ player[3].strftime('%d-%m-%y %H:%M') }}</td>
+                <td>{{ player[4].strftime('%d-%m-%y %H:%M') }}</td>
             </tr>
 
         {% endfor %}
